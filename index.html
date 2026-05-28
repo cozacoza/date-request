@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Will you go on a...</title>
+<title>Will you go on a date with me? 🤔</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html, body {
@@ -162,6 +162,23 @@
   .bounce { animation: bounce 0.7s ease infinite alternate; display: inline-block; }
   @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-8px); } }
   .pin-note { font-size: 12px; color: #c090a8; margin-top: 0.6rem; }
+
+  .btn-kakao {
+    width: 100%; background: #FEE500; color: #3C1E1E;
+    border: none; border-radius: 50px;
+    padding: 13px 20px; font-size: 15px; font-weight: 700;
+    cursor: pointer; transition: background 0.15s, transform 0.1s;
+    font-family: inherit; display: flex; align-items: center; justify-content: center;
+  }
+  .btn-kakao:hover { background: #F0D800; }
+  .btn-kakao:active { transform: scale(0.98); }
+
+  .copy-toast {
+    display: none; margin-top: 8px;
+    background: #fce8f0; color: #a04060;
+    font-size: 12px; border-radius: 10px;
+    padding: 8px 14px; text-align: center;
+  }
 </style>
 </head>
 <body>
@@ -208,7 +225,7 @@
 
       <div class="field-label">Time? 🕐</div>
       <div id="timeArea">
-        <div class="time-placeholder">← 날짜 먼저 선택</div>
+        <div class="time-placeholder">← 먼저 날짜를 선택해줘!</div>
       </div>
 
       <button class="btn-full" id="btnS3" disabled onclick="goFood()">next →</button>
@@ -236,8 +253,13 @@
       <h1 style="margin-top:0.8rem;">CONFIRMED!!</h1>
       <p class="sub" style="margin-bottom:1.4rem;">I'm so glad to see you</p>
       <div class="result-card" id="resultBox"></div>
-      <p class="pin-note" style="margin-bottom:1.2rem;">📌 please share this schedule with me</p>
-      <button class="btn-full" onclick="show('s6')">STOP, you should know.. →</button>
+      <p class="pin-note" style="margin-bottom:1rem;">📌 please share this schedule with me</p>
+      <button class="btn-kakao" id="kakaoShareBtn" onclick="shareKakao()">
+        <img src="https://developers.kakao.com/assets/img/about/logos/kakaolink/kakaolink_btn_medium.png" alt="" style="width:22px;height:22px;border-radius:6px;vertical-align:middle;margin-right:8px;">
+        카카오톡으로 공유하기
+      </button>
+      <div id="copyToast" class="copy-toast">클립보드에 복사됐어! 카톡에 붙여넣어줘 📋</div>
+      <button class="btn-full" style="margin-top:10px;" onclick="show('s6')">STOP, you should know.. →</button>
     </div>
 
     <!-- screen 6 -->
@@ -425,6 +447,34 @@ function pickFood(el, v) {
   el.classList.add('sel');
   selFood = v;
   document.getElementById('btnS4').disabled = false;
+}
+
+function shareKakao() {
+  var ds = selDate
+    ? new Date(selDate + 'T00:00:00').toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric',weekday:'long'})
+    : '미정';
+  var text = '📅 Date: ' + ds + '\n🕐 Time: ' + selTime + '\n🍽️ Food: ' + selFood + '\n\n' + window.location.href;
+
+  if (navigator.share) {
+    navigator.share({ title: 'Our Date 🌸', text: text })
+      .catch(function(){});
+    return;
+  }
+
+  var kakaoUrl = 'kakaolink://send?msg=' + encodeURIComponent(text);
+  var a = document.createElement('a');
+  a.href = kakaoUrl;
+  a.click();
+
+  setTimeout(function() {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function() {
+        var toast = document.getElementById('copyToast');
+        toast.style.display = 'block';
+        setTimeout(function(){ toast.style.display = 'none'; }, 3000);
+      });
+    }
+  }, 500);
 }
 
 function goResult() {
